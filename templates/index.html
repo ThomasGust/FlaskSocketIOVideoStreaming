@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>HTML 5 Boilerplate</title>
+  </head>
+  <body>
+    <div id="container">
+        <canvas id="canvasOutput"></canvas>
+        <video autoplay="true" id="videoElement"></video>
+    </div>
+    
+    <div class = 'video'>
+        <img id="image">
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.1/socket.io.js" integrity="sha512-9mpsATI0KClwt+xVZfbcf2lJ8IFBAwsubJ6mI3rtULwyM3fBmQFzj0It4tGqxLOGQwGfJdk/G+fANnxfq9/cew==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        function capture(video, scaleFactor) {
+            if(scaleFactor == null){
+                scaleFactor = 1;
+            }
+            var w = video.videoWidth * scaleFactor;
+            var h = video.videoHeight * scaleFactor;
+            var canvas = document.createElement('canvas');
+                canvas.width  = w;
+                canvas.height = h;
+            var ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0, w, h);
+            return canvas;
+        } 
+
+        var socket = io('http://localhost:5000');
+        socket.on('connect', function(){
+            console.log("Connection has been succesfully established with socket.", socket.connected)
+        });
+        const video = document.querySelector("#videoElement");
+        video.width = 500; 
+        video.height = 375; ;
+        if (navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function (stream) {
+                video.srcObject = stream;
+                video.play();
+            })
+            .catch(function (err0r) {
+                console.log(err0r)
+                console.log("Something went wrong!");
+            });
+        }
+        const FPS = 22;
+        setInterval(() => {
+            var type = "image/jpg"
+            var video_element = document.getElementById("videoElement")
+            var frame = capture(video_element, 1)
+            var data = frame.toDataURL(type);
+            data = data.replace('data:' + type + ';base64,', '');
+            socket.emit('image', data);
+        }, 10000/FPS);
+    
+    
+        socket.on('response_back', function(image){
+            const image_id = document.getElementById('image');
+            console.log(image)
+            image_id.src = image;
+        });
+    </script>
+  </body>
+</html>
