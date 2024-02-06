@@ -56,7 +56,7 @@
             var video_element = document.getElementById("videoElement")
             var frame = capture(video_element, 1)
             var data = frame.toDataURL(type);
-            data = data.replace('data:' + type + ';base64,', '');
+            //data = data.replace('data:' + type + ';base64,', '');
             socket.emit('image', data);
         }, 10000/FPS);
     
